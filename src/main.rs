@@ -1,9 +1,11 @@
+use log::debug;
 use rand::Rng;
 
-use crate::irc::connect;
-
+use crate::argparse::Args;
+use crate::irc::{connect, download_packs};
 mod argparse;
 mod irc;
+mod search;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum CustomErrors {
@@ -18,6 +20,7 @@ pub enum CustomErrors {
 }
 
 fn main() {
+    env_logger::init();
     let ret = main_();
     if ret.is_ok() {
         return;
@@ -27,6 +30,13 @@ fn main() {
 
 fn main_() -> Result<(), CustomErrors> {
     // Name
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args = crate::argparse::parse_args(&args)?;
+    let args = match args {
+        Args::Query { search: s } => crate::search::search_to_direct(&s),
+        Args::Direct { bot, packs } => Args::Direct { bot, packs },
+    };
+
     let name: String = rand::thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
         .filter(|x| x.is_ascii_alphabetic())
@@ -34,6 +44,10 @@ fn main_() -> Result<(), CustomErrors> {
         .map(char::from)
         .collect();
     println!("Connecting using name \"{}\"", name);
-    connect(&name)?;
+    let mut stream = connect(&name)?;
+    debug!("Connected to server");
+    if let Args::Direct { bot, packs } = args {
+        download_packs(&mut stream, &bot, &packs);
+    }
     Ok(())
 }
