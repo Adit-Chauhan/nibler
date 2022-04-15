@@ -23,16 +23,6 @@ pub enum Args {
     Direct { bot: String, packs: Vec<String> },
 }
 
-//fn from(text: &str) -> Result<Args, ArgErr> {
-//    match text.to_ascii_lowercase().as_str() {
-//        "query" => Ok(Args::Query),
-//        "search" => Ok(Args::Query),
-//        "find" => Ok(Args::Query),
-//        "direct" => Ok(Args::Direct),
-//        _ => Err(ArgErr::IncorrectArgument),
-//    }
-//}
-
 fn parse_direct(command: &[String]) -> Result<Args, CustomErrors> {
     if command.len() != 2 {
         return Err(CustomErrors::NumberOfArguments);
@@ -62,7 +52,7 @@ pub fn parse_args(args: &Vec<String>) -> Result<Args, CustomErrors> {
 
     match args[0].to_ascii_lowercase().as_str() {
         "query" | "search" | "find" => Ok(Args::Query {
-            search: args[1..].join(" "),
+            search: args[1..].join("+"),
         }),
         "direct" => parse_direct(&args[1..]),
         _ => Err(CustomErrors::IncorrectArgument),
@@ -75,7 +65,6 @@ mod tests {
 
     macro_rules! svec {
 	     ($($x:expr),*) => (vec![$($x.to_string()),*]);
-
     }
     #[test]
     fn test_arg_parse_initial_less_quantity() {

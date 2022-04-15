@@ -5,6 +5,7 @@ use crate::argparse::Args;
 use crate::irc::{connect, download_packs};
 mod argparse;
 mod irc;
+mod list;
 mod search;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -17,6 +18,7 @@ pub enum CustomErrors {
     FailedToSetName,
     FailedToSetTCPStream,
     ErrorReadingTcpStream,
+    FailedToGet,
 }
 
 fn main() {

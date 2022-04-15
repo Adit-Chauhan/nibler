@@ -13,3 +13,8 @@ lazy_static = "1.4.0"
 rand = "0.8.5"
 regex = "1.5.5"
 indicatif = "0.17.0-rc.10"
+cached = "0.34.0"
+reqwest = { version="0.11.10" , features = ["blocking"] }
+rayon = "1.5.2"
+crossterm =  "0.19"
+tui = { version = "0.14", default-features = false, features = ['crossterm'] }

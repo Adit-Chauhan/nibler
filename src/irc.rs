@@ -1,5 +1,5 @@
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{debug, info, trace, warn};
+use log::{debug, trace};
 use regex::{Captures, Regex};
 use std::fs::File;
 use std::io::{Read, Write};
