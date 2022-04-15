@@ -21,4 +21,5 @@ Pressing Esc will quit the program without downloading.
 *** Direct Downloads
 #+begin_src bash
 nibler direct <BOT> "packs,seperated,by,commas"
+nibler direct 'Chinese-Cartoons' '2379,2380,2381,2382'
 #+end_src
