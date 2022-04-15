@@ -163,6 +163,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> Result<App, 
                     app.download = true;
                     break;
                 }
+                KeyCode::Char('D') => {
+                    app.download = true;
+                    break;
+                }
                 KeyCode::Esc => break,
                 KeyCode::Char('q') => break,
                 KeyCode::Down => {

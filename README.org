@@ -1,0 +1,24 @@
+#+title: Nibler
+
+* Nibler
+Nibler is a CLI/TUI client to search and download files that can be found in #nibl irc channel.
+
+** Usage Instruction
+*** Searching
+#+begin_src bash
+nibler search jujutsu kaisen
+#+end_src
+
++ This will generate an interactive tui as shown below.
+
+    [[./selection.png]]
+
+Pressing Enter will toggle the file in the to download list.(denoted by the plus sign)
+*Note:* List will be filtered to only display the packs by the first selected bot as multiple bots in a single session are not supported.
+Pressing 'd' key will start the downloads after the selection has been made.
+Pressing Esc will quit the program without downloading.
+
+*** Direct Downloads
+#+begin_src bash
+nibler direct <BOT> "packs,seperated,by,commas"
+#+end_src
