@@ -1,5 +1,4 @@
 use crate::{argparse::Args, list::StatefulList};
-use cached::proc_macro::cached;
 use regex::{Captures, Regex};
 use reqwest::blocking::get;
 use std::collections::HashMap;
@@ -69,7 +68,6 @@ pub fn search_to_direct(sterm: &str) -> Args {
     res.unwrap()
 }
 
-#[cached]
 fn get_bots() -> HashMap<u16, String> {
     let a = get(format!("{}/bots", API_BASE)).unwrap().text().unwrap();
     let re_id = Regex::new(r#""id":(\d+),"name":"(.+?)""#).unwrap();
