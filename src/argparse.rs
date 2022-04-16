@@ -1,5 +1,5 @@
-use crate::CustomErrors;
 use regex::Regex;
+use std::error::Error;
 
 #[rustfmt::skip]
 static BOTS: [&str; 50] = [
@@ -17,24 +17,30 @@ static BOTS: [&str; 50] = [
     "moviebox","pcela-anime|BiriBiri","tvbox"
 ];
 
+macro_rules! exit_with {
+    ($x:expr) => {{
+        println!($x);
+        std::process::exit(1);
+    }};
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Args {
     Query { search: String },
     Direct { bot: String, packs: Vec<String> },
 }
 
-fn parse_direct(command: &[String]) -> Result<Args, CustomErrors> {
+fn parse_direct(command: &[String]) -> Result<Args, Box<dyn Error>> {
     if command.len() != 2 {
-        return Err(CustomErrors::NumberOfArguments);
+        exit_with!("Error in parsed Arguments");
     }
     let result = BOTS.into_iter().filter(|x| &&command[0] == x).next();
     let bot: &str;
     match result {
-        None => return Err(CustomErrors::BotNotFound),
+        None => exit_with!("Error: Bot Not Found"),
         Some(botz) => bot = botz,
     };
-    let re: Vec<String> = Regex::new(r#"\d+"#)
-        .map_err(|_| CustomErrors::RegexError)?
+    let re: Vec<String> = Regex::new(r#"\d+"#)?
         .find_iter(&command[1])
         .map(|x| x.as_str().to_string())
         .collect();
@@ -45,9 +51,9 @@ fn parse_direct(command: &[String]) -> Result<Args, CustomErrors> {
     })
 }
 
-pub fn parse_args(args: &Vec<String>) -> Result<Args, CustomErrors> {
+pub fn parse_args(args: &Vec<String>) -> Result<Args, Box<dyn Error>> {
     if args.len() < 2 {
-        return Err(CustomErrors::NumberOfArguments);
+        exit_with!("Insufficient Arguments");
     }
 
     match args[0].to_ascii_lowercase().as_str() {
@@ -55,89 +61,6 @@ pub fn parse_args(args: &Vec<String>) -> Result<Args, CustomErrors> {
             search: args[1..].join("+"),
         }),
         "direct" => parse_direct(&args[1..]),
-        _ => Err(CustomErrors::IncorrectArgument),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    macro_rules! svec {
-	     ($($x:expr),*) => (vec![$($x.to_string()),*]);
-    }
-    #[test]
-    fn test_arg_parse_initial_less_quantity() {
-        assert_eq!(
-            parse_args(&svec!["search"]),
-            Err(CustomErrors::NumberOfArguments)
-        );
-    }
-    #[test]
-    fn test_arg_parse_search_terms() {
-        let res = Ok(Args::Query {
-            search: "it is working".to_string(),
-        });
-        // option is case insensitive
-        assert_eq!(parse_args(&svec!["find", "it", "is", "working"]), res);
-        assert_eq!(parse_args(&svec!["fINd", "it", "is", "working"]), res);
-        assert_eq!(parse_args(&svec!["Search", "it", "is", "working"]), res);
-        assert_eq!(parse_args(&svec!["Query", "it", "is", "working"]), res);
-        assert_eq!(parse_args(&svec!["QuEry", "it", "is", "working"]), res);
-        assert_eq!(parse_args(&svec!["QueRy", "it", "is", "working"]), res);
-        // Search terms are not
-        assert_ne!(parse_args(&svec!["QueRy", "it", "is", "woRking"]), res);
-        assert_ne!(parse_args(&svec!["QueRy", "it", "Is", "working"]), res);
-        assert_ne!(parse_args(&svec!["QueRy", "iT", "is", "working"]), res);
-    }
-
-    #[test]
-    fn test_arg_parse_direct_incorrect_argument() {
-        assert_eq!(
-            parse_args(&svec!["Garbage", "It really Doesnt", "Matter"]),
-            Err(CustomErrors::IncorrectArgument)
-        );
-    }
-    #[test]
-    fn test_arg_parse_direct_wrong_quantity_of_arguments() {
-        // Less Args
-        assert_eq!(
-            parse_args(&svec!["direct", "Arutha"]),
-            Err(CustomErrors::NumberOfArguments)
-        );
-        // More Args
-        assert_eq!(
-            parse_args(&svec!["direct", "Arutha", "Luffy", "Zoro"]),
-            Err(CustomErrors::NumberOfArguments)
-        );
-    }
-    #[test]
-    fn test_arg_parse_direct_bad_bot() {
-        assert_eq!(
-            parse_args(&svec!["direct", "bad", "lamo"]),
-            Err(CustomErrors::BotNotFound)
-        );
-    }
-
-    #[test]
-    fn test_arg_parse_direct_single() {
-        assert_eq!(
-            parse_args(&svec!["direct", "Arutha", "123"]),
-            Ok(Args::Direct {
-                bot: "Arutha".to_string(),
-                packs: svec!["123"]
-            })
-        );
-    }
-
-    #[test]
-    fn test_arg_parse_direct_multi_pack() {
-        assert_eq!(
-            parse_args(&svec!["dirEct", "Arutha", "123,456,1122"]),
-            Ok(Args::Direct {
-                bot: "Arutha".to_string(),
-                packs: svec!["123", "456", "1122"]
-            })
-        );
+        _ => exit_with!("Invalid Input Argument"),
     }
 }

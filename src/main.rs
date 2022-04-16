@@ -1,25 +1,12 @@
-use log::debug;
-use rand::Rng;
-
 use crate::argparse::Args;
 use crate::irc::{connect, download_packs};
+use log::debug;
+use rand::Rng;
+use std::error::Error;
 mod argparse;
 mod irc;
 mod list;
 mod search;
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum CustomErrors {
-    BotNotFound,
-    ErrorInParsingPacks,
-    RegexError,
-    IncorrectArgument,
-    NumberOfArguments,
-    FailedToSetName,
-    FailedToSetTCPStream,
-    ErrorReadingTcpStream,
-    FailedToGet,
-}
 
 fn main() {
     env_logger::init();
@@ -30,8 +17,7 @@ fn main() {
     println!("Error {:?}", ret);
 }
 
-fn main_() -> Result<(), CustomErrors> {
-    // Name
+fn main_() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let args = crate::argparse::parse_args(&args)?;
     let args = match args {
@@ -49,7 +35,7 @@ fn main_() -> Result<(), CustomErrors> {
     let mut stream = connect(&name)?;
     debug!("Connected to server");
     if let Args::Direct { bot, packs } = args {
-        download_packs(&mut stream, &bot, &packs);
+        download_packs(&mut stream, &bot, &packs)?;
     }
     Ok(())
 }

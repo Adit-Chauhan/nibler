@@ -1,13 +1,12 @@
 use crate::{argparse::Args, list::StatefulList};
-use regex::{Captures, Regex};
-use reqwest::blocking::get;
-use std::collections::HashMap;
-
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use regex::{Captures, Regex};
+use reqwest::blocking::get;
+use std::collections::HashMap;
 use std::{error::Error, io};
 use tui::{
     backend::{Backend, CrosstermBackend},
@@ -65,6 +64,10 @@ impl App {
 
 pub fn search_to_direct(sterm: &str) -> Args {
     let res = search_disp(&sterm);
+    if res.is_err() {
+        println!("Error in searching");
+        std::process::exit(0);
+    }
     res.unwrap()
 }
 
@@ -125,6 +128,11 @@ fn search_disp(query: &str) -> Result<Args, Box<dyn Error>> {
         println!("{:?}", err);
         return Err(err);
     } else {
+        let bot_name = |id: u16| {
+            let map = get_bots();
+            let name = map.get(&id).unwrap();
+            name.to_string()
+        };
         let a = res.unwrap();
         if a.download {
             let s: Vec<String> = a.selected.into_iter().map(|x| x.to_string()).collect();
@@ -159,19 +167,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> Result<App, 
                         app.filter_items();
                     }
                 }
-                KeyCode::Char('d') => {
+                KeyCode::Char('d') | KeyCode::Char('D') => {
                     app.download = true;
                     break;
                 }
-                KeyCode::Char('D') => {
-                    app.download = true;
-                    break;
-                }
-                KeyCode::Esc => break,
-                KeyCode::Char('q') => break,
-                KeyCode::Down => {
-                    app.items.next();
-                }
+                KeyCode::Esc | KeyCode::Char('q') => break,
+                KeyCode::Down => app.items.next(),
                 KeyCode::Up => app.items.previous(),
                 _ => (),
             };
@@ -182,7 +183,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> Result<App, 
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let entry: Vec<ListItem> = iter_collect!(app.items.items, |v| -> ListItem {
         let mut added = "";
-
         if app.selected.contains(&(v.pack as usize)) {
             added = "+ ";
         }
@@ -194,10 +194,4 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .highlight_symbol("> ");
 
     f.render_stateful_widget(vids, f.size(), &mut app.items.state);
-}
-
-fn bot_name(id: u16) -> String {
-    let map = get_bots();
-    let name = map.get(&id).unwrap();
-    name.to_string()
 }
