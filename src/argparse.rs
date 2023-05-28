@@ -1,6 +1,5 @@
+use handy_macros::exit_with;
 use regex::Regex;
-use std::error::Error;
-
 #[rustfmt::skip]
 static BOTS: [&str; 50] = [
     "AFN|XDCC","ARUTHA-BATCH|1080p","ARUTHA-BATCH|720p","ARUTHA-BATCH|SD","ASource|Gerozaemon",
@@ -17,50 +16,44 @@ static BOTS: [&str; 50] = [
     "moviebox","pcela-anime|BiriBiri","tvbox"
 ];
 
-macro_rules! exit_with {
-    ($x:expr) => {{
-        println!($x);
-        std::process::exit(1);
-    }};
-}
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum Args {
     Query { search: String },
     Direct { bot: String, packs: Vec<String> },
 }
 
-fn parse_direct(command: &[String]) -> Result<Args, Box<dyn Error>> {
+fn parse_direct(command: &[String]) -> Args {
     if command.len() != 2 {
-        exit_with!("Error in parsed Arguments");
+        exit_with!("Error: Insufficient Arguments");
     }
     let result = BOTS.into_iter().filter(|x| &&command[0] == x).next();
-    let bot: &str;
-    match result {
+    let bot: &str = match result {
         None => exit_with!("Error: Bot Not Found"),
-        Some(botz) => bot = botz,
+        Some(botz) => botz,
     };
-    let re: Vec<String> = Regex::new(r#"\d+"#)?
+    let re: Vec<String> = Regex::new(r#"\d+"#)
+        .expect("Regex Error")
         .find_iter(&command[1])
         .map(|x| x.as_str().to_string())
         .collect();
 
-    Ok(Args::Direct {
+    Args::Direct {
         bot: bot.to_string(),
         packs: re,
-    })
+    }
 }
 
-pub fn parse_args(args: &Vec<String>) -> Result<Args, Box<dyn Error>> {
+pub fn parse_args(args: &Vec<String>) -> Args {
     if args.len() < 2 {
-        exit_with!("Insufficient Arguments");
+        exit_with!("Error: Insufficient Arguments");
     }
 
     match args[0].to_ascii_lowercase().as_str() {
-        "query" | "search" | "find" => Ok(Args::Query {
-            search: args[1..].join("+"),
-        }),
+        "query" | "search" | "find" => {
+            let joint = args[1..].join("+").replace(" ", "+");
+            Args::Query { search: joint }
+        }
         "direct" => parse_direct(&args[1..]),
-        _ => exit_with!("Invalid Input Argument"),
+        _ => exit_with!("Error: Invalid Input Argument"),
     }
 }

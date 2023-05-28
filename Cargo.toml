@@ -15,3 +15,4 @@ indicatif = "0.17.0-rc.10"
 reqwest = { version="0.11.10" , features = ["blocking"] }
 crossterm =  "0.19"
 tui = { version = "0.14", default-features = false, features = ['crossterm'] }
+handy-macros = {git = "https://github.com/Adit-Chauhan/handy-macros"}

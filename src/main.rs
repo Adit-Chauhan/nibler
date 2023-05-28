@@ -3,6 +3,7 @@ use crate::irc::{connect, download_packs};
 use log::debug;
 use rand::Rng;
 use std::error::Error;
+
 mod argparse;
 mod irc;
 mod list;
@@ -19,7 +20,7 @@ fn main() {
 
 fn main_() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let args = crate::argparse::parse_args(&args)?;
+    let args = crate::argparse::parse_args(&args);
     let args = match args {
         Args::Query { search: s } => crate::search::search_to_direct(&s),
         Args::Direct { bot, packs } => Args::Direct { bot, packs },
